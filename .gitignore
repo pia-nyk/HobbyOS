@@ -1,3 +1,6 @@
-*.bin
-*.o
+
+/isodir
+kernel/kernel/*.o
+kernel/kernel/*.d
+kernel/arch/x86_64/*.o
 *.iso
