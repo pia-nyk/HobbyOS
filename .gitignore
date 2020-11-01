@@ -6,3 +6,11 @@ kernel/arch/x86_64/*.o
 myos.iso
 sysroot
 isodir
+libc/string/*.libk.o
+libc/string/*.libk.d
+libc/stdlib/*.libk.o
+libc/stdlib/*.libk.d
+libc/stdio/*.libk.o
+libc/stdio/*.libk.d
+kernel/arch/x86_64/*.d
+libc/libk.a
