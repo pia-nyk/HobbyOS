@@ -6,13 +6,13 @@ CPPFLAGS?=
 LDFLAGS?=
 LIBS?=
 
-DESTDIR?=
+DESTDIR?=CRTEND_OBJ
 PREFIX?=/usr/local
 EXEC_PREFIX?=$(PREFIX)
 BOOTDIR?=$(EXEC_PREFIX)/boot
 INCLUDEDIR?=$(PREFIX)/include
 
-CFLAGS:=$(CFLAGS) -ffreestanding -Wall -Wextra --verbose
+CFLAGS:=$(CFLAGS) -ffreestanding -Wall -Wextra
 CPPFLAGS:=$(CPPFLAGS) -D__is_kernel -Iinclude
 LDFLAGS:=$(LDFLAGS)
 LIBS:=$(LIBS) -nostdlib -lk -lgcc
@@ -20,8 +20,8 @@ LIBS:=$(LIBS) -nostdlib -lk -lgcc
 ARCHDIR=arch/x86_64
 
 include $(ARCHDIR)/make.config
-# CRTBEGIN_OBJ:=$(shell $(CC) -print-file-name=crtbegin.o)
-# CRTEND_OBJ:=$(shell $(CC) -print-file-name=crtend.o)
+crtbegin_obj:=$(shell $(CC) -print-file-name=crtbegin.o)
+crtend_obj:=$(shell $(CC) -print-file-name=crtend.o)
 CFLAGS:=$(CFLAGS) $(KERNEL_ARCH_CFLAGS)
 CPPFLAGS:=$(CPPFLAGS) $(KERNEL_ARCH_CPPFLAGS)
 LDFLAGS:=$(LDFLAGS) $(KERNEL_ARCH_LDFLAGS)
@@ -33,17 +33,18 @@ kernel/kernel.o \
 
 OBJS=\
 $(ARCHDIR)/crti.o \
-$(ARCHDIR)/crtbegin.o \
+$(crtbegin_obj) \
 $(KERNEL_OBJS) \
-$(ARCHDIR)/crtend.o \
+$(crtend_obj) \
 $(ARCHDIR)/crtn.o \
 
 LINK_LIST=\
 $(LDFLAGS) \
 $(ARCHDIR)/crti.o \
-$(ARCHDIR)/crtbegin.o \
+$(crtbegin_obj) \
 $(KERNEL_OBJS) \
-$(ARCHDIR)/crtend.o \
+$(LIBS) \
+$(crtend_obj) \
 $(ARCHDIR)/crtn.o \
 
 .PHONY: all clean install install-headers install-kernel
@@ -55,14 +56,11 @@ myos.kernel: $(OBJS) $(ARCHDIR)/linker.ld
 	$(CC) -T $(ARCHDIR)/linker.ld -o $@ $(CFLAGS) $(LINK_LIST)
 	grub-file --is-x86-multiboot myos.kernel
 
-# $(ARCHDIR)/crtbegin.o $(ARCHDIR)/crtend.o:
-# 	OBJ=`$(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@
-
 .c.o:
 	$(CC) -MD -c $< -o $@ -std=gnu11 $(CFLAGS) $(CPPFLAGS)
 
 .asm.o:
-	nasm $< -f elf64 -o $@
+	nasm $< -f elf -o $@
 
 clean:
 	rm -f myos.kernel
